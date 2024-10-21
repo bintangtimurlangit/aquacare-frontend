@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "aquacare-frontend",
-    "slug": "aquacare-frontend",
+    "name": "Aquacare",
+    "slug": "Aquacare",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icons/icon.png",
