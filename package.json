@@ -25,7 +25,8 @@
     "react-native-reanimated": "^3.10.1",
     "react-native-svg": "^15.8.0",
     "three": "^0.169.0",
-    "typescript": "~5.3.3"
+    "typescript": "~5.3.3",
+    "expo-barcode-scanner": "~13.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
