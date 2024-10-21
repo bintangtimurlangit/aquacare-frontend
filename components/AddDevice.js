@@ -8,7 +8,6 @@ export default function AddDevice() {
     const navigation = useNavigation();
 
     const [hasPermission, setHasPermission] = useState(null);
-    const [scanned, setScanned] = useState(false);
 
     useEffect(() => {
         (async () => {
@@ -18,9 +17,8 @@ export default function AddDevice() {
     }, []);
 
     const handleBarCodeScanned = ({ type, data }) => {
-        setScanned(true);
         Alert.alert('QR Code Scanned', `Data: ${data}`);
-        // Here you can navigate or perform any actions based on the scanned data
+        // Optionally: you can add navigation or further actions here
     };
 
     if (hasPermission === null) {
@@ -46,16 +44,16 @@ export default function AddDevice() {
 
             <View style={styles.cameraContainer}>
                 <BarCodeScanner
-                    onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+                    onBarCodeScanned={handleBarCodeScanned}
                     style={StyleSheet.absoluteFillObject}
                 />
             </View>
 
-            {scanned && (
-                <TouchableOpacity style={styles.button} onPress={() => setScanned(false)}>
-                    <Text style={styles.buttonText}>Tap to scan again</Text>
+            <View style={styles.buttonContainer}>
+                <TouchableOpacity style={styles.button}>
+                    <Text style={styles.buttonText}>Enter code manually</Text>
                 </TouchableOpacity>
-            )}
+            </View>
         </View>
     );
 }
@@ -92,23 +90,27 @@ const styles = StyleSheet.create({
         color: 'rgba(237, 237, 237, 0.7)'
     },
     cameraContainer: {
-        aspectRatio: 1,
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        marginHorizontal: 'auto',
-        marginVertical: 32,
+        marginHorizontal: 30,
+        marginTop: 32,
+        marginBottom: 30,
         overflow: 'hidden',
         borderRadius: 15,
     },
+    buttonContainer: {
+        marginHorizontal: 32,
+        marginBottom: 50,
+    },
     button: {
-        alignSelf: 'center',
-        padding: 15,
-        backgroundColor: '#1f4e78',
-        borderRadius: 8,
-        marginBottom: 30,
+        backgroundColor: '#A5D7E8',
+        paddingVertical: 15,
+        borderRadius: 25,
+        alignItems: 'center',
+        marginBottom: 15,
     },
     buttonText: {
-        color: '#fff',
-        fontSize: 16,
+        color: '#0B2447'
     },
 });
