@@ -32,12 +32,12 @@ export default function Home() {
             <View style={styles.contentWrapper}>
                 <Canvas>
                     <OrbitControls enablePan={false} enableZoom={false}/>
-                    <directionalLight position={[1, 0, 0]} args={['white', 5]} />
-                    <directionalLight position={[-1, 0, 0]} args={['white', 5]} />
-                    <directionalLight position={[0, 0, 1]} args={['white', 5]} />
-                    <directionalLight position={[0, 0, -1]} args={['white', 5]} />
-                    <directionalLight position={[0, 1, 0]} args={['white', 5]} />
-                    <directionalLight position={[0, -1, 0]} args={['white', 5]} />
+                    <directionalLight position={[1, 0, 0]} args={['#A5D7E8', 5]} />
+                    <directionalLight position={[-1, 0, 0]} args={['#A5D7E8', 5]} />
+                    <directionalLight position={[0, 0, 1]} args={['#A5D7E8', 5]} />
+                    <directionalLight position={[0, 0, -1]} args={['#A5D7E8', 5]} />
+                    <directionalLight position={[0, 1, 0]} args={['#A5D7E8', 5]} />
+                    <directionalLight position={[0, -1, 0]} args={['#A5D7E8', 5]} />
                     <Suspense fallback={null}>
                         <Model />
                     </Suspense>
@@ -118,11 +118,21 @@ const styles = StyleSheet.create({
         display:'flex',
         alignItems:'center',
         marginHorizontal: 32,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 5,
     },
     headerInfo: {
         display:'flex',
         alignItems:'center',
         marginHorizontal: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
+        elevation: 5,
     },
     headerInfoContainer: {
         marginTop: 16,
@@ -134,6 +144,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-around',
         flexDirection: 'row',
         alignItems:'center',
+        marginBottom: 36,
     },
     badgeText: {
         color: "#FFFFFF",
@@ -150,10 +161,10 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     blueDot: {
-        width: 8, // Size of the dot
+        width: 8,
         height: 8,
-        borderRadius: 4, // Half of width/height to make it a circle
-        backgroundColor: '#00BFFF', // Blue color
+        borderRadius: 4,
+        backgroundColor: '#A5D7E8',
         marginRight: 8,
         justifyContent: 'center',
     },
@@ -164,7 +175,7 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
         backgroundColor: '#0b2447',
         width: Dimensions.get('window').width,
-        height: Dimensions.get('window').height - 450,
+        height: Dimensions.get('window').height - 486,
     },
     button: {
         marginTop: 32,
@@ -174,6 +185,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 15,
         marginHorizontal: 32,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 5,
     },
     buttonText: {
         color: '#0B2447',
@@ -185,6 +201,11 @@ const styles = StyleSheet.create({
         height: Dimensions.get('window').height - 500,
         backgroundColor: '#FFFFFF',
         borderRadius: 40,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 }, // Negative height for upward shadow
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
+        elevation: 5,
     },
     circularProgressWrapper: {
         marginTop: 32,
