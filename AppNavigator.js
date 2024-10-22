@@ -4,13 +4,13 @@ import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import HomeScreen from './screens/HomeScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
-import AddDeviceScreen from "./screens/AddDeviceScreen";
+import DeviceScanScreen from "./screens/DeviceScanScreen";
 
 const Stack = createStackNavigator();
 
 export default function AppNavigator() {
     return (
-        <Stack.Navigator initialRouteName="AddDevice">
+        <Stack.Navigator initialRouteName="DeviceScan">
             <Stack.Screen
                 name="Onboarding"
                 component={OnboardingScreen}
@@ -32,8 +32,8 @@ export default function AppNavigator() {
                 options={{ headerShown: false }}
             />
             <Stack.Screen
-                name="AddDevice"
-                component={AddDeviceScreen}
+                name="DeviceScan"
+                component={DeviceScanScreen}
                 options={{ headerShown: false }}
             />
         </Stack.Navigator>
