@@ -1,12 +1,15 @@
 import React, { Suspense } from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Dimensions} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import CircularProgress from 'react-native-circular-progress-indicator';
 import { Canvas } from '@react-three/fiber/native';
 import Model from './FishTank';
 import { OrbitControls } from '@react-three/drei';
+import { useNavigation } from "@react-navigation/native";
 
 export default function Home() {
+    const navigation = useNavigation();
+
     return (
         <View style={styles.container}>
             <View style={styles.header}>
@@ -87,7 +90,7 @@ export default function Home() {
                         titleStyle={{fontWeight: 'bold'}}
                     />
                 </View>
-                <TouchableOpacity style={styles.button}>
+                <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Advanced')}>
                     <Text style={styles.buttonText}>Advanced</Text>
                 </TouchableOpacity>
             </LinearGradient>
