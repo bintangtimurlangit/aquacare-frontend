@@ -13,7 +13,9 @@
     "@react-navigation/stack": "^6.4.1",
     "@react-three/drei": "^9.114.6",
     "@react-three/fiber": "^8.17.10",
+    "d3": "^7.9.0",
     "expo": "~51.0.28",
+    "expo-barcode-scanner": "~13.0.1",
     "expo-gl": "^14.0.2",
     "expo-linear-gradient": "^13.0.2",
     "expo-status-bar": "~1.12.1",
@@ -24,9 +26,9 @@
     "react-native-circular-progress-indicator": "^4.4.2",
     "react-native-reanimated": "^3.10.1",
     "react-native-svg": "^15.8.0",
+    "react-native-vector-icons": "^10.2.0",
     "three": "^0.169.0",
-    "typescript": "~5.3.3",
-    "expo-barcode-scanner": "~13.0.1"
+    "typescript": "~5.3.3"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

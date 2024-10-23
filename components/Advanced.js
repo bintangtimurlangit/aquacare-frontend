@@ -1,8 +1,9 @@
-import {View, Text, TouchableOpacity, Image, StyleSheet} from "react-native";
-import {useNavigation} from "@react-navigation/native";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import ArrowLeft from "../assets/icons/arrow-left.svg";
+import Icon from 'react-native-vector-icons/FontAwesome';
 import React from "react";
-import {LinearGradient} from "expo-linear-gradient";
+import {LineGraph} from "./LineGraph";
 
 export default function Advanced() {
     const navigation = useNavigation();
@@ -13,8 +14,23 @@ export default function Advanced() {
                 <TouchableOpacity onPress={() => navigation.navigate('Home')}>
                     <ArrowLeft height={30} width={30} style={{color: 'rgba(237, 237, 237, 0.7)'}} />
                 </TouchableOpacity>
-                <Image source={require('../assets/images/logo-text.png')} style={styles.logo} />
+
+                <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+                    <Icon name="cog" size={30} color="rgba(237, 237, 237, 0.7)" />
+                </TouchableOpacity>
             </View>
+
+            <LineGraph
+                data={[7.6, 7.8, 9.1, 6.6, 7.6, 7.5, 7.2, 6.5]}
+                style={{ marginHorizontal: 32, marginTop: 20, borderRadius: 25 }}
+                color={{
+                    dark: "#A5D7E8",
+                    light: "#3e565e",
+                    nearWhite: "#A5D7E8"
+                }}
+                label="PH LEVEL"
+                stat="8.0"
+            />
 
             <View style={styles.card}>
 
@@ -27,6 +43,9 @@ export default function Advanced() {
             <View style={styles.card}>
 
             </View>
+
+
+
         </View>
     )
 }
@@ -54,7 +73,7 @@ const styles = StyleSheet.create({
     card: {
         borderRadius: 25,
         backgroundColor: '#0B192C',
-        height: 160,
+        height: 140,
         marginHorizontal: 32,
         marginTop: 20,
         padding: 16,
