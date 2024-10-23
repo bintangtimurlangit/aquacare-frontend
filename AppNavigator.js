@@ -13,7 +13,7 @@ const Stack = createStackNavigator();
 
 export default function AppNavigator() {
     return (
-        <Stack.Navigator initialRouteName="Advanced">
+        <Stack.Navigator initialRouteName="DeviceScan">
             <Stack.Screen
                 name="Onboarding"
                 component={OnboardingScreen}

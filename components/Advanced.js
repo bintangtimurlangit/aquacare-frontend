@@ -1,4 +1,4 @@
-import {View, TouchableOpacity, StyleSheet, ScrollView} from "react-native";
+import {View, TouchableOpacity, StyleSheet, Text} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import ArrowLeft from "../assets/icons/arrow-left.svg";
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -15,8 +15,10 @@ export default function Advanced() {
                     <ArrowLeft height={30} width={30} style={{color: 'rgba(237, 237, 237, 0.7)'}} />
                 </TouchableOpacity>
 
+                <Text style={styles.headerText}>Advanced Settings</Text>
+
                 <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-                    <Icon name="cog" size={30} color="rgba(237, 237, 237, 0.7)" />
+                    <Icon name="cog" size={30} color='rgba(237, 237, 237, 0.7)' />
                 </TouchableOpacity>
             </View>
 
@@ -76,24 +78,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 66,
     },
+    headerText: {
+        fontWeight: "bold",
+        color: 'rgba(237, 237, 237, 0.7)',
+    },
     logo: {
         marginTop: 2,
         width: 76,
         height: 20,
         resizeMode: "contain",
-    },
-    card: {
-        borderRadius: 25,
-        backgroundColor: '#0B192C',
-        height: 140,
-        marginHorizontal: 32,
-        marginTop: 20,
-        padding: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-        elevation: 5,
     },
     cardGraph: {
         marginHorizontal: 32,
