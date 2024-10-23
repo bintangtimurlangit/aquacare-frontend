@@ -9,10 +9,12 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.0.0",
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/stack": "^6.4.1",
     "@react-three/drei": "^9.114.6",
     "@react-three/fiber": "^8.17.10",
+    "axios": "^1.7.7",
     "d3": "^7.9.0",
     "expo": "~51.0.28",
     "expo-barcode-scanner": "~13.0.1",

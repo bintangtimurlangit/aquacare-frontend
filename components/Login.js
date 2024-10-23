@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput } from 'react-native';
+import {View, Text, StyleSheet, Image, TouchableOpacity, TextInput, Alert} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ArrowLeft from '../assets/icons/arrow-left.svg'
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Login() {
     const navigation = useNavigation();
@@ -10,6 +12,30 @@ export default function Login() {
 
     const handleRegisterNavigation = () => {
         navigation.navigate('Register');
+    };
+
+    const handleLogin = async () => {
+        try {
+            const response = await axios.post('http://192.168.31.218:4000/api/users/login', {
+                username,
+                password,
+            });
+
+            const token = response.data.token;
+            await AsyncStorage.setItem('userToken', token);
+
+            console.log('Token stored successfully:', token);
+            navigation.navigate('Home');
+
+        } catch (error) {
+            console.error('Login error:', error.response?.data || error.message);
+
+            Alert.alert(
+                'Login Failed',
+                error.response?.data?.message || 'Invalid username or password.',
+                [{ text: 'OK' }]
+            );
+        }
     };
 
     return (
@@ -47,7 +73,7 @@ export default function Login() {
                     />
 
                     <View style={styles.buttonContainer}>
-                        <TouchableOpacity style={styles.button}>
+                        <TouchableOpacity style={styles.button} onPress={handleLogin}>
                             <Text style={styles.buttonText}>Sign In</Text>
                         </TouchableOpacity>
                     </View>
