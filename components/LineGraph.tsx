@@ -35,16 +35,21 @@ export function LineGraph(props: LineGraphProps) {
         .domain([0, props.data.length - 1])
         .range([0, width]);
 
+    const lineOffset = -20;
+
+    const lineMaxHeightOffset = 30;
+    const lineYScale = d3.scaleLinear().domain([min, max]).range([graphHeight - lineMaxHeightOffset, 0]);
+
     const lineFn = d3
         .line<number>()
         .x((d, ix) => xScale(ix))
-        .y((d) => yScale(d));
+        .y((d) => lineYScale (d) - lineOffset);
 
     const areaFn = d3
         .area<number>()
         .x((d, ix) => xScale(ix))
         .y0(height)
-        .y1((d) => yScale(d));
+        .y1((d, ix) => lineYScale (d) - lineOffset);
 
     const svgLine = lineFn(props.data);
     const svgArea = areaFn(props.data);
@@ -69,15 +74,12 @@ export function LineGraph(props: LineGraphProps) {
                         <Text numberOfLines={1} adjustsFontSizeToFit style={styles.statText}>
                             {props.stat}
                         </Text>
-                        <Text numberOfLines={1} adjustsFontSizeToFit style={styles.percentageText}>
-                            50%
-                        </Text>
                     </View>
                 </View>
             </View>
             <Svg width={width} height={graphHeight}>
                 <Defs>
-                    <LinearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <LinearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="80%">
                         <Stop offset={"0%"} stopColor={lightHexColor} stopOpacity={1} />
                         <Stop offset={"100%"} stopColor={nearlyWhiteHexColor} stopOpacity={0} />
                     </LinearGradient>
@@ -85,6 +87,7 @@ export function LineGraph(props: LineGraphProps) {
                 <Path d={svgLine} stroke={darkHexColor} fill={"none"} strokeWidth={2} />
                 <Path d={svgArea} stroke={"none"} fill={"url(#gradient)"} />
             </Svg>
+
         </View>
     );
 }
@@ -93,6 +96,7 @@ const styles = StyleSheet.create({
     container: {
         backgroundColor: "#0B192C",
         borderRadius: 25,
+        overflow: 'hidden',
     },
     labelContainer: {
         padding: 16,
@@ -111,12 +115,6 @@ const styles = StyleSheet.create({
     statText: {
         fontSize: 32,
         color: "#A5D7E8",
-        fontWeight: "bold",
-    },
-    percentageText: {
-        fontSize: 12,
-        color: "#A5D7E8",
-        padding: 4,
         fontWeight: "bold",
     },
 });

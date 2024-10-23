@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, StyleSheet } from "react-native";
+import {View, TouchableOpacity, StyleSheet, ScrollView} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import ArrowLeft from "../assets/icons/arrow-left.svg";
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -20,32 +20,44 @@ export default function Advanced() {
                 </TouchableOpacity>
             </View>
 
-            <LineGraph
-                data={[7.6, 7.8, 9.1, 6.6, 7.6, 7.5, 7.2, 6.5]}
-                style={{ marginHorizontal: 32, marginTop: 20, borderRadius: 25 }}
-                color={{
-                    dark: "#A5D7E8",
-                    light: "#3e565e",
-                    nearWhite: "#A5D7E8"
-                }}
-                label="PH LEVEL"
-                stat="8.0"
-            />
+            <View>
+                <LineGraph
+                    data={[7.6, 7.8, 9.1, 6.6, 7.6, 7.5, 7.2, 6.5]}
+                    style={styles.cardGraph}
+                    color={{
+                        dark: "#A5D7E8",
+                        light: "#3e565e",
+                        nearWhite: "#A5D7E8"
+                    }}
+                    label="PH LEVEL"
+                    stat="8.0"
+                />
 
-            <View style={styles.card}>
+                <LineGraph
+                    data={[22, 23, 24, 23, 23, 23, 22, 21, 21, 22, 22]}
+                    style={styles.cardGraph}
+                    color={{
+                        dark: "#A5D7E8",
+                        light: "#3e565e",
+                        nearWhite: "#A5D7E8"
+                    }}
+                    label="TEMPERATURE"
+                    stat="23 °C"
+                />
+
+                <LineGraph
+                    data={[100, 100, 100, 100, 100, 100, 100, 100, 99, 98, 98, 97, 97, 96, 96, 96, 95, 95, 94, 94, 94, 93, 93, 92, 92, 91, 90]}
+                    style={styles.cardGraph}
+                    color={{
+                        dark: "#A5D7E8",
+                        light: "#3e565e",
+                        nearWhite: "#A5D7E8"
+                    }}
+                    label="WATER LEVEL"
+                    stat="90%"
+                />
 
             </View>
-
-            <View style={styles.card}>
-
-            </View>
-
-            <View style={styles.card}>
-
-            </View>
-
-
-
         </View>
     )
 }
@@ -83,4 +95,14 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 5,
     },
+    cardGraph: {
+        marginHorizontal: 32,
+        marginTop: 20,
+        borderRadius: 25,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 5,
+    }
 });
