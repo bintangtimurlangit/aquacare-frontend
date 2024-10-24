@@ -1,12 +1,12 @@
-import React, { createContext, useEffect, useState } from 'react';
+import { createContext, useEffect, useState } from 'react';
 
 export const WebSocketContext = createContext();
 
 export const WebSocketProvider = ({ children, deviceToken: initialDeviceToken }) => {
-    const [temperature, setTemperature] = useState(null);
-    const [ph, setPh] = useState(null);
-    const [water, setWater] = useState(null);
-    const [deviceToken, setDeviceToken] = useState(initialDeviceToken); // add setDeviceToken here
+    const [temperatureData, setTemperatureData] = useState([]); // Store entire temperature data
+    const [phData, setPhData] = useState([]); // Store entire pH data
+    const [waterData, setWaterData] = useState([]); // Store entire water data
+    const [deviceToken, setDeviceToken] = useState(initialDeviceToken);
 
     useEffect(() => {
         if (!deviceToken) return;
@@ -23,28 +23,40 @@ export const WebSocketProvider = ({ children, deviceToken: initialDeviceToken })
             const data = JSON.parse(event.data);
             console.log('Received data from WebSocket:', data);
 
-            const temperatureData = [];
-            const phData = [];
-            const waterData = [];
+            let newTemperatureData = [];
+            let newPhData = [];
+            let newWaterData = [];
 
             data.forEach((reading) => {
                 if (reading.type === 'temp') {
-                    temperatureData.push(parseFloat(reading.value));
+                    newTemperatureData.push(parseFloat(reading.value));
                 } else if (reading.type === 'ph') {
-                    phData.push(parseFloat(reading.value));
+                    newPhData.push(parseFloat(reading.value));
                 } else if (reading.type === 'water') {
-                    waterData.push(parseFloat(reading.value));
+                    newWaterData.push(parseFloat(reading.value));
                 }
             });
 
-            if (temperatureData.length > 0) {
-                setTemperature(temperatureData[temperatureData.length - 1]);
+            // Update temperature data only if there's a new value
+            if (newTemperatureData.length > 0) {
+                const latestTemperature = newTemperatureData[newTemperatureData.length - 1];
+                if (latestTemperature !== temperatureData[temperatureData.length - 1]) {
+                    setTemperatureData((prev) => [...prev, latestTemperature]); // Add only new data
+                }
             }
-            if (phData.length > 0) {
-                setPh(phData[phData.length - 1]);
+            // Update pH data only if there's a new value
+            if (newPhData.length > 0) {
+                const latestPh = newPhData[newPhData.length - 1];
+                if (latestPh !== phData[phData.length - 1]) {
+                    setPhData((prev) => [...prev, latestPh]); // Add only new data
+                }
             }
-            if (waterData.length > 0) {
-                setWater(waterData[waterData.length - 1]);
+            // Update water data only if there's a new value
+            if (newWaterData.length > 0) {
+                const latestWater = newWaterData[newWaterData.length - 1];
+                if (latestWater !== waterData[waterData.length - 1]) {
+                    setWaterData((prev) => [...prev, latestWater]); // Add only new data
+                }
             }
         };
 
@@ -58,7 +70,17 @@ export const WebSocketProvider = ({ children, deviceToken: initialDeviceToken })
     }, [deviceToken]);
 
     return (
-        <WebSocketContext.Provider value={{ temperature, ph, water, setDeviceToken }}>
+        <WebSocketContext.Provider
+            value={{
+                temperature: temperatureData[temperatureData.length - 1],
+                ph: phData[phData.length - 1],
+                water: waterData[waterData.length - 1],
+                temperatureData, // Provide the entire array
+                phData,          // Provide the entire array
+                waterData,       // Provide the entire array
+                setDeviceToken
+            }}
+        >
             {children}
         </WebSocketContext.Provider>
     );

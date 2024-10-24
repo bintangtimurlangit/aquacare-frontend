@@ -1,18 +1,20 @@
-import {View, TouchableOpacity, StyleSheet, Text} from "react-native";
+import React, { useContext } from "react";
+import { View, TouchableOpacity, StyleSheet, Text } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import ArrowLeft from "../assets/icons/arrow-left.svg";
 import Icon from 'react-native-vector-icons/FontAwesome';
-import React from "react";
-import {LineGraph} from "./LineGraph";
+import { WebSocketContext } from '../websocket/WebSocketContext';
+import { LineGraph } from "./LineGraph";
 
 export default function Advanced() {
     const navigation = useNavigation();
+    const { temperatureData, phData, waterData, temperature, ph, water } = useContext(WebSocketContext);
 
     return (
         <View style={styles.container}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-                    <ArrowLeft height={30} width={30} style={{color: 'rgba(237, 237, 237, 0.7)'}} />
+                    <ArrowLeft height={30} width={30} style={{ color: 'rgba(237, 237, 237, 0.7)' }} />
                 </TouchableOpacity>
 
                 <Text style={styles.headerText}>Advanced View</Text>
@@ -24,7 +26,7 @@ export default function Advanced() {
 
             <View>
                 <LineGraph
-                    data={[7.6, 7.8, 9.1, 6.6, 7.6, 7.5, 7.2, 6.5]}
+                    data={phData}
                     style={styles.cardGraph}
                     color={{
                         dark: "#A5D7E8",
@@ -32,11 +34,11 @@ export default function Advanced() {
                         nearWhite: "#A5D7E8"
                     }}
                     label="PH LEVEL"
-                    stat="8.0"
+                    stat={ph.toFixed(1)}
                 />
 
                 <LineGraph
-                    data={[22, 23, 24, 23, 23, 23, 22, 21, 21, 22, 22]}
+                    data={temperatureData}
                     style={styles.cardGraph}
                     color={{
                         dark: "#A5D7E8",
@@ -44,11 +46,11 @@ export default function Advanced() {
                         nearWhite: "#A5D7E8"
                     }}
                     label="TEMPERATURE"
-                    stat="23 °C"
+                    stat={`${temperature.toFixed(1)} °C`}
                 />
 
                 <LineGraph
-                    data={[100, 100, 100, 100, 100, 100, 100, 100, 99, 98, 98, 97, 97, 96, 96, 96, 95, 95, 94, 94, 94, 93, 93, 92, 92, 91, 90, 100, 0, 100]}
+                    data={waterData}
                     style={styles.cardGraph}
                     color={{
                         dark: "#A5D7E8",
@@ -56,12 +58,11 @@ export default function Advanced() {
                         nearWhite: "#A5D7E8"
                     }}
                     label="WATER LEVEL"
-                    stat="90%"
+                    stat={`${water}%`}
                 />
-
             </View>
         </View>
-    )
+    );
 }
 
 const styles = StyleSheet.create({
