@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {View, Text, StyleSheet, Image, TouchableOpacity, TextInput, Alert} from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ArrowLeft from '../assets/icons/arrow-left.svg'
 import axios from 'axios';
@@ -25,16 +25,39 @@ export default function Login() {
             await AsyncStorage.setItem('userToken', token);
 
             console.log('Token stored successfully:', token);
-            navigation.navigate('Home');
 
+            const deviceResponse = await axios.get('http://192.168.1.9:4000/api/devices/user-devices', {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            const { devices } = deviceResponse.data;
+
+            if (devices && devices.length > 0) {
+                const { aquarium_name } = devices[0];
+                console.log(`User device found: ${devices[0].token}, Aquarium: ${aquarium_name}`);
+                navigation.navigate('Home', { aquariumName: aquarium_name });
+            } else {
+                console.log('No device found for user, redirecting to DeviceScan.');
+                navigation.navigate('DeviceScan');
+            }
         } catch (error) {
             console.error('Login error:', error.response?.data || error.message);
 
-            Alert.alert(
-                'Login Failed',
-                error.response?.data?.message || 'Invalid username or password.',
-                [{ text: 'OK' }]
-            );
+            if (error.response && error.response.status === 401) {
+                Alert.alert(
+                    'Unauthorized',
+                    'Your session has expired. Please log in again.',
+                    [{ text: 'OK' }]
+                );
+            } else {
+                Alert.alert(
+                    'Login Failed',
+                    error.response?.data?.message || 'Invalid username or password.',
+                    [{ text: 'OK' }]
+                );
+            }
         }
     };
 

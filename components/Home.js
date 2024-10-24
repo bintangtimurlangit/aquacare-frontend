@@ -5,9 +5,9 @@ import CircularProgress from 'react-native-circular-progress-indicator';
 import { Canvas } from '@react-three/fiber/native';
 import Model from './FishTank';
 import { OrbitControls } from '@react-three/drei';
-import { useNavigation } from "@react-navigation/native";
+import {useNavigation} from "@react-navigation/native";
 
-export default function Home() {
+export default function Home({ aquariumName }) {
     const navigation = useNavigation();
 
     return (
@@ -20,7 +20,9 @@ export default function Home() {
             </View>
 
             <View style={styles.wrapper}>
-                <Text style={styles.title} adjustsFontSizeToFit numberOfLines={1} minimumFontScale={0.5}>Bintang's Aquarium</Text>
+                <Text style={styles.title} adjustsFontSizeToFit numberOfLines={1} minimumFontScale={0.5}>
+                    {aquariumName + "'s Aquarium"}
+                </Text>
             </View>
 
             <View style={styles.headerInfo}>
