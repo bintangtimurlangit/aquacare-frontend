@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useContext, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import CircularProgress from 'react-native-circular-progress-indicator';
@@ -6,75 +6,14 @@ import { Canvas } from '@react-three/fiber/native';
 import Model from './FishTank';
 import { OrbitControls } from '@react-three/drei';
 import { useNavigation } from "@react-navigation/native";
+import { WebSocketContext } from '../websocket/WebSocketContext';
 
 export default function Home({ aquariumName, deviceToken }) {
     const navigation = useNavigation();
-    const [temperature, setTemperature] = useState(0);
-    const [ph, setPh] = useState(0);
-    const [water, setWater] = useState(0);
+    const { temperature, ph, water, setDeviceToken } = useContext(WebSocketContext);
 
     useEffect(() => {
-        const websocket = new WebSocket('ws://172.20.10.2:4000');
-
-        websocket.onopen = () => {
-            console.log('WebSocket Client Connected');
-            websocket.send(JSON.stringify({ token: deviceToken }));
-            console.log('Device Token for WebSocket:', deviceToken);
-        };
-
-        websocket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            console.log('Received data from WebSocket:', data);
-
-            // Process the received data
-            const temperatureData = [];
-            const phData = [];
-            const waterData = [];
-
-            data.forEach((reading) => {
-                if (reading.type === 'temp') {
-                    temperatureData.push(parseFloat(reading.value));
-                } else if (reading.type === 'ph') {
-                    phData.push(parseFloat(reading.value));
-                } else if (reading.type === 'water') {
-                    waterData.push(parseFloat(reading.value));
-                }
-            });
-
-            // Log or use the extracted data
-            console.log('Temperatures:', temperatureData);
-            console.log('pH Values:', phData);
-            console.log('Water Levels:', waterData);
-
-            data.forEach((reading) => {
-                if (reading.type === 'temp') {
-                    temperatureData.push(parseFloat(reading.value));
-                } else if (reading.type === 'ph') {
-                    phData.push(parseFloat(reading.value));
-                } else if (reading.type === 'water') {
-                    waterData.push(parseFloat(reading.value));
-                }
-            });
-
-            // If the data contains valid values, update the states
-            if (temperatureData.length > 0) {
-                setTemperature(temperatureData[temperatureData.length - 1]);  // Get the last entry
-            }
-            if (phData.length > 0) {
-                setPh(phData[phData.length - 1]);  // Get the last entry
-            }
-            if (waterData.length > 0) {
-                setWater(waterData[waterData.length - 1]);  // Get the last entry
-            }
-        };
-
-        websocket.onclose = () => {
-            console.log('WebSocket Client Disconnected');
-        };
-
-        return () => {
-            websocket.close();
-        };
+        setDeviceToken(deviceToken);
     }, [deviceToken]);
 
     return (
