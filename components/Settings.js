@@ -1,11 +1,13 @@
 import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import ArrowLeft from "../assets/icons/arrow-left.svg";
-import React from "react";
+import React, { useContext } from 'react';
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { WebSocketContext } from '../websocket/WebSocketContext';
 
 export default function Settings() {
     const navigation = useNavigation();
+    const { setDeviceToken } = useContext(WebSocketContext);
 
     const handleLogout = () => {
         Alert.alert(
@@ -15,10 +17,10 @@ export default function Settings() {
                 { text: 'Cancel', style: 'cancel' },
                 {
                     text: 'Yes', onPress: async () => {
-                        // Clear the JWT token from AsyncStorage
                         await AsyncStorage.removeItem('userToken');
 
-                        // Navigate back to the Onboarding screen
+                        setDeviceToken(null);
+
                         navigation.navigate('Onboarding');
                     }
                 }

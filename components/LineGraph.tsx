@@ -7,9 +7,9 @@ import * as d3 from "d3";
 export type LineGraphProps = {
     data: number[];
     color: {
-        dark: string;  // For the dark line color
-        light: string; // For the light gradient stop
-        nearWhite: string; // For the near-white gradient stop
+        dark: string;
+        light: string;
+        nearWhite: string;
     };
     label: string;
     stat: string;
