@@ -16,7 +16,7 @@ export default function Login() {
 
     const handleLogin = async () => {
         try {
-            const response = await axios.post('http://192.168.1.9:4000/api/users/login', {
+            const response = await axios.post('http://172.20.10.2:4000/api/users/login', {
                 username,
                 password,
             });
@@ -26,7 +26,7 @@ export default function Login() {
 
             console.log('Token stored successfully:', token);
 
-            const deviceResponse = await axios.get('http://192.168.1.9:4000/api/devices/user-devices', {
+            const deviceResponse = await axios.get('http://172.20.10.2:4000/api/devices/user-devices', {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -35,9 +35,9 @@ export default function Login() {
             const { devices } = deviceResponse.data;
 
             if (devices && devices.length > 0) {
-                const { aquarium_name } = devices[0];
-                console.log(`User device found: ${devices[0].token}, Aquarium: ${aquarium_name}`);
-                navigation.navigate('Home', { aquariumName: aquarium_name });
+                const { aquarium_name, token: deviceToken } = devices[0];
+                console.log(`User device found: ${deviceToken}, Aquarium: ${aquarium_name}`);
+                navigation.navigate('Home', { aquariumName: aquarium_name, deviceToken: deviceToken });
             } else {
                 console.log('No device found for user, redirecting to DeviceScan.');
                 navigation.navigate('DeviceScan');

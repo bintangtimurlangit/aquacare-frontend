@@ -4,9 +4,12 @@ import { useRoute } from "@react-navigation/native";
 
 export default function HomeScreen() {
     const route = useRoute();
-    const { aquariumName } = route.params;
+    const { aquariumName, deviceToken } = route.params;
 
     return (
-        <Home aquariumName={aquariumName} />
+        <Home
+            aquariumName={aquariumName}
+            deviceToken={deviceToken}
+        />
     );
 }
