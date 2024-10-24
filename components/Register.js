@@ -1,13 +1,38 @@
-import React, {useState} from 'react';
-import {View, Text, StyleSheet, Image, TouchableOpacity, TextInput} from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ArrowLeft from '../assets/icons/arrow-left.svg'
+import axios from "axios";
 
 export default function Register() {
     const navigation = useNavigation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+
+    const handleRegister = async () => {
+        if (password !== confirmPassword) {
+            Alert.alert('Error', "Passwords don't match");
+            return;
+        }
+
+        try {
+            const response = await axios.post('http://192.168.1.9:4000/api/users/register', {
+                username: email,
+                password: password,
+            });
+
+            // Registration success
+            Alert.alert('Success', 'User registered successfully', [
+                { text: 'OK', onPress: () => navigation.navigate('Login') }
+            ]);
+        } catch (error) {
+            console.error('Registration error:', error.response?.data || error.message);
+
+            // Show error message
+            Alert.alert('Registration Failed', error.response?.data?.error || 'Something went wrong. Try again.');
+        }
+    };
 
     return (
         <View style={styles.container}>
@@ -52,7 +77,7 @@ export default function Register() {
                     />
 
                     <View style={styles.buttonContainer}>
-                        <TouchableOpacity style={styles.button}>
+                        <TouchableOpacity style={styles.button} onPress={handleRegister}>
                             <Text style={styles.buttonText}>Sign Up</Text>
                         </TouchableOpacity>
                     </View>

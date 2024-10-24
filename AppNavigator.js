@@ -8,6 +8,7 @@ import OnboardingScreen from './screens/OnboardingScreen';
 import DeviceScanScreen from "./screens/DeviceScanScreen";
 import DeviceAddScreen from "./screens/DeviceAddScreen";
 import AdvancedScreen from "./screens/AdvancedScreen";
+import SettingsScreen from "./screens/SettingsScreen";
 
 const Stack = createStackNavigator();
 
@@ -47,6 +48,11 @@ export default function AppNavigator() {
             <Stack.Screen
                 name="Advanced"
                 component={AdvancedScreen}
+                options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name="Settings"
+                component={SettingsScreen}
                 options={{ headerShown: false }}
             />
         </Stack.Navigator>

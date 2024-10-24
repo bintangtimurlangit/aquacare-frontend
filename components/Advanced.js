@@ -15,7 +15,7 @@ export default function Advanced() {
                     <ArrowLeft height={30} width={30} style={{color: 'rgba(237, 237, 237, 0.7)'}} />
                 </TouchableOpacity>
 
-                <Text style={styles.headerText}>Advanced Settings</Text>
+                <Text style={styles.headerText}>Advanced View</Text>
 
                 <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
                     <Icon name="cog" size={30} color='rgba(237, 237, 237, 0.7)' />
