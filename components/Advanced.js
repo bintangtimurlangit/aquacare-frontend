@@ -34,7 +34,7 @@ export default function Advanced() {
                         nearWhite: "#A5D7E8"
                     }}
                     label="PH LEVEL"
-                    stat={ph.toFixed(1)}
+                    stat={ph}
                 />
 
                 <LineGraph
@@ -46,7 +46,7 @@ export default function Advanced() {
                         nearWhite: "#A5D7E8"
                     }}
                     label="TEMPERATURE"
-                    stat={`${temperature.toFixed(1)} °C`}
+                    stat={`${temperature} °C`}
                 />
 
                 <LineGraph

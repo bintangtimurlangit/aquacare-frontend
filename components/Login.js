@@ -6,12 +6,14 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useContext } from 'react';
 import { WebSocketContext } from '../websocket/WebSocketContext';
+import { BASE_IP, PORT } from '@env';
 
 export default function Login() {
     const navigation = useNavigation();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const { setDeviceToken } = useContext(WebSocketContext);
+    const BASE_URL = `${BASE_IP}:${PORT}`;
 
     const handleRegisterNavigation = () => {
         navigation.navigate('Register');
@@ -19,7 +21,7 @@ export default function Login() {
 
     const handleLogin = async () => {
         try {
-            const response = await axios.post('http://192.168.31.218:4000/api/users/login', {
+            const response = await axios.post(`http://${BASE_URL}/api/users/login`, {
                 username,
                 password,
             });
@@ -29,7 +31,7 @@ export default function Login() {
 
             console.log('Token stored successfully:', token);
 
-            const deviceResponse = await axios.get('http://192.168.31.218:4000/api/devices/user-devices', {
+            const deviceResponse = await axios.get(`http://${BASE_URL}/api/devices/user-devices`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -37,14 +39,15 @@ export default function Login() {
 
             const { devices } = deviceResponse.data;
 
+            // Successful login but check for devices
             if (devices && devices.length > 0) {
                 const { aquarium_name, token: deviceToken } = devices[0];
                 console.log(`User device found: ${deviceToken}, Aquarium: ${aquarium_name}`);
 
                 setDeviceToken(deviceToken);
-
                 navigation.navigate('Home', { aquariumName: aquarium_name, deviceToken: deviceToken });
             } else {
+                // No devices found, redirecting to DeviceScan
                 console.log('No device found for user, redirecting to DeviceScan.');
                 navigation.navigate('DeviceScan');
             }

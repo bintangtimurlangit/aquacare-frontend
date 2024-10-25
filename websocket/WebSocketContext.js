@@ -1,4 +1,5 @@
 import { createContext, useEffect, useState } from 'react';
+import { BASE_IP, PORT } from '@env';
 
 export const WebSocketContext = createContext();
 
@@ -11,7 +12,7 @@ export const WebSocketProvider = ({ children, deviceToken: initialDeviceToken })
     useEffect(() => {
         if (!deviceToken) return;
 
-        const websocket = new WebSocket('ws://192.168.31.218:4000');
+        const websocket = new WebSocket(`ws://${BASE_IP}:${PORT}`);
 
         websocket.onopen = () => {
             console.log('WebSocket Client Connected');

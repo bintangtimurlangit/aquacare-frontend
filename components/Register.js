@@ -3,12 +3,14 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, Alert } fro
 import { useNavigation } from '@react-navigation/native';
 import ArrowLeft from '../assets/icons/arrow-left.svg'
 import axios from "axios";
+import { BASE_IP, PORT } from '@env';
 
 export default function Register() {
     const navigation = useNavigation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const BASE_URL = `${BASE_IP}:${PORT}`;
 
     const handleRegister = async () => {
         if (password !== confirmPassword) {
@@ -17,19 +19,17 @@ export default function Register() {
         }
 
         try {
-            const response = await axios.post('http://192.168.1.9:4000/api/users/register', {
+            const response = await axios.post(`http://${BASE_URL}/api/users/register`, {
                 username: email,
                 password: password,
             });
 
-            // Registration success
             Alert.alert('Success', 'User registered successfully', [
                 { text: 'OK', onPress: () => navigation.navigate('Login') }
             ]);
         } catch (error) {
             console.error('Registration error:', error.response?.data || error.message);
 
-            // Show error message
             Alert.alert('Registration Failed', error.response?.data?.error || 'Something went wrong. Try again.');
         }
     };

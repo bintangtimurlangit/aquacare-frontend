@@ -11,6 +11,7 @@ import { WebSocketContext } from '../websocket/WebSocketContext';
 export default function Home({ aquariumName, deviceToken }) {
     const navigation = useNavigation();
     const { temperature, ph, water, setDeviceToken } = useContext(WebSocketContext);
+    const BASE_URL = `${BASE_IP}:${PORT}`;
 
     useEffect(() => {
         setDeviceToken(deviceToken);
