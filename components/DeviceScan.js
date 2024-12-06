@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import ArrowLeft from "../assets/icons/arrow-left.svg";
@@ -9,29 +9,33 @@ export default function DeviceScan() {
     const [permission, requestPermission] = useCameraPermissions();
     const [scannedCode, setScannedCode] = useState('');
     const [isScanning, setIsScanning] = useState(true);
+    const processingRef = useRef(false);
 
     useEffect(() => {
         requestPermission();
     }, []);
 
     const handleBarCodeScanned = (result) => {
-        if (!isScanning) return;
+        if (!isScanning || scannedCode === result.data || processingRef.current) return;
         
+        processingRef.current = true;
         setIsScanning(false);
         setScannedCode(result.data);
+        
         Alert.alert('QR Code Scanned', `Device ID: ${result.data}`, [
             {
                 text: 'Scan Again',
                 onPress: () => {
                     setScannedCode('');
                     setIsScanning(true);
+                    processingRef.current = false;
                 },
             },
             {
                 text: 'Continue',
                 onPress: () => {
-                    // Handle the scanned code here
                     navigation.navigate('Home', { deviceId: result.data });
+                    processingRef.current = false;
                 },
             },
         ]);
