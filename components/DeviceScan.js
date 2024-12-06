@@ -1,50 +1,60 @@
-import React, {useEffect, useState} from 'react';
-import {Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View} from "react-native";
+import React, { useEffect, useState } from 'react';
+import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import ArrowLeft from "../assets/icons/arrow-left.svg";
-import {BarCodeScanner} from "expo-barcode-scanner";
+import { CameraView, useCameraPermissions } from 'expo-camera';
 
 export default function DeviceScan() {
     const navigation = useNavigation();
-
-    const [hasPermission, setHasPermission] = useState(null);
-    const [showInput, setShowInput] = useState(false);
-    const [manualCode, setManualCode] = useState('');
+    const [permission, requestPermission] = useCameraPermissions();
+    const [scannedCode, setScannedCode] = useState('');
+    const [isScanning, setIsScanning] = useState(true);
 
     useEffect(() => {
-        (async () => {
-            const { status } = await BarCodeScanner.requestPermissionsAsync();
-            setHasPermission(status === 'granted');
-        })();
+        requestPermission();
     }, []);
 
-    const handleBarCodeScanned = ({ type, data }) => {
-        Alert.alert('QR Code Scanned', `Data: ${data}`);
-        // Optionally: you can add navigation or further actions here
+    const handleBarCodeScanned = (result) => {
+        if (!isScanning) return;
+        
+        setIsScanning(false);
+        setScannedCode(result.data);
+        Alert.alert('QR Code Scanned', `Device ID: ${result.data}`, [
+            {
+                text: 'Scan Again',
+                onPress: () => {
+                    setScannedCode('');
+                    setIsScanning(true);
+                },
+            },
+            {
+                text: 'Continue',
+                onPress: () => {
+                    // Handle the scanned code here
+                    navigation.navigate('Home', { deviceId: result.data });
+                },
+            },
+        ]);
     };
 
-    const handleSubmit = () => {
-        Alert.alert('Manual Code Submitted', `Code: ${manualCode}`);
-        // Further actions can be added here
-    };
-
-    if (hasPermission === null) {
-        return <Text>Requesting camera permission...</Text>;
+    if (!permission) {
+        return <View style={styles.container}>
+            <Text style={styles.message}>Requesting camera permission...</Text>
+        </View>;
     }
-    if (hasPermission === false) {
-        return <Text>No access to camera</Text>;
+
+    if (!permission.granted) {
+        return (
+            <View style={styles.container}>
+                <Text style={styles.message}>Camera permission is required to scan QR codes</Text>
+            </View>
+        );
     }
 
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => {
-                    if (showInput) {
-                        setShowInput(false);
-                    } else {
-                        navigation.navigate('Home');
-                    }
-                }}>
+                <TouchableOpacity onPress={() => navigation.navigate('Home')}>
                     <ArrowLeft height={30} width={30} style={{color: 'rgba(237, 237, 237, 0.7)'}} />
                 </TouchableOpacity>
                 <Image source={require('../assets/images/logo-text.png')} style={styles.logo} />
@@ -52,49 +62,28 @@ export default function DeviceScan() {
 
             <View style={{marginHorizontal: 32}}>
                 <Text style={styles.title}>Add New Device</Text>
-
                 <Text style={styles.subtitle}>
-                    {showInput ? 'Input the code that is located in the back of the device.' : 'Scan the QR code that is located in the back of the device.'}
+                    Scan the QR code that is located in the back of the device.
                 </Text>
-
-                {showInput && (
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Enter code"
-                        placeholderTextColor="#FFFFFF"
-                        value={manualCode}
-                        onChangeText={setManualCode}
-                    />
-                )}
             </View>
 
             <View style={styles.cameraContainer}>
-                {!showInput && (
-                    <BarCodeScanner
-                        onBarCodeScanned={handleBarCodeScanned}
-                        style={StyleSheet.absoluteFillObject}
-                    />
-                )}
-            </View>
-
-            <View style={styles.buttonContainer}>
-                {showInput && (
-                    <TouchableOpacity
-                        style={styles.submitButton}
-                        onPress={handleSubmit}
-                    >
-                        <Text style={styles.buttonText}>Submit</Text>
-                    </TouchableOpacity>
-                )}
-
-                <TouchableOpacity
-                    style={styles.button}
-                    onPress={() => setShowInput(!showInput)}
+                <CameraView 
+                    style={styles.camera} 
+                    facing="back"
+                    barcodeScannerSettings={{
+                        barcodeTypes: ["qr"],
+                    }}
+                    onBarcodeScanned={isScanning ? handleBarCodeScanned : undefined}
                 >
-                    <Text style={styles.buttonText}>
-                        {showInput ? 'Back to Camera' : 'Enter code manually'}
-                    </Text>
-                </TouchableOpacity>
+                    <View style={styles.overlay}>
+                        <View style={styles.scanArea}>
+                            <View style={styles.targetBox}>
+                                <Text style={styles.scanText}>Position QR code here</Text>
+                            </View>
+                        </View>
+                    </View>
+                </CameraView>
             </View>
         </View>
     );
@@ -104,8 +93,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#0b2447',
-        width: '100%',
-        height: '100%',
     },
     header: {
         marginHorizontal: 32,
@@ -133,48 +120,45 @@ const styles = StyleSheet.create({
     },
     cameraContainer: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
         marginHorizontal: 30,
         marginTop: 32,
         marginBottom: 30,
         overflow: 'hidden',
         borderRadius: 15,
     },
-    buttonContainer: {
-        marginHorizontal: 32,
-        marginBottom: 50,
+    camera: {
+        flex: 1,
     },
-    button: {
-        backgroundColor: '#A5D7E8',
-        padding: 15,
-        borderRadius: 25,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 10,
-    },
-    submitButton: {
-        backgroundColor: '#A5D7E8',
-        padding: 15,
-        borderRadius: 25,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 10,
-    },
-    buttonText: {
-        color: '#0B2447'
-    },
-    input: {
-        color: '#FFFFFF',
-        marginTop: 16,
-        height: 50,
-        borderColor: '#19376D',
-        borderWidth: 1,
-        borderRadius: 10,
-        paddingHorizontal: 10,
-        marginBottom: 15,
-        backgroundColor: '#19376D',
-        width: '100%',
+    message: {
+        fontSize: 16,
         textAlign: 'center',
+        marginBottom: 16,
+        paddingHorizontal: 20,
+        color: '#FFFFFF',
     },
+    overlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.1)',
+    },
+    scanArea: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    targetBox: {
+        width: 250,
+        height: 250,
+        borderWidth: 2,
+        borderColor: '#fff',
+        borderRadius: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'transparent',
+    },
+    scanText: {
+        color: '#fff',
+        fontSize: 14,
+        textAlign: 'center',
+        marginTop: 8,
+    }
 });

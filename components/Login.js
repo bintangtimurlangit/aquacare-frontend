@@ -2,18 +2,16 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ArrowLeft from '../assets/icons/arrow-left.svg'
-import axios from 'axios';
+import { authAPI, deviceAPI } from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useContext } from 'react';
 import { WebSocketContext } from '../websocket/WebSocketContext';
-import { BASE_IP, PORT } from '@env';
 
 export default function Login() {
     const navigation = useNavigation();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const { setDeviceToken } = useContext(WebSocketContext);
-    const BASE_URL = `${BASE_IP}:${PORT}`;
 
     const handleRegisterNavigation = () => {
         navigation.navigate('Register');
@@ -21,51 +19,25 @@ export default function Login() {
 
     const handleLogin = async () => {
         try {
-            const response = await axios.post(`http://${BASE_URL}/api/users/login`, {
-                username,
-                password,
-            });
-
-            const token = response.data.token;
+            const { token } = await authAPI.login(username, password);
             await AsyncStorage.setItem('userToken', token);
 
-            console.log('Token stored successfully:', token);
+            const { devices } = await deviceAPI.getUserDevices();
 
-            const deviceResponse = await axios.get(`http://${BASE_URL}/api/devices/user-devices`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            const { devices } = deviceResponse.data;
-
-            // Successful login but check for devices
             if (devices && devices.length > 0) {
                 const { aquarium_name, token: deviceToken } = devices[0];
-                console.log(`User device found: ${deviceToken}, Aquarium: ${aquarium_name}`);
-
                 setDeviceToken(deviceToken);
                 navigation.navigate('Home', { aquariumName: aquarium_name, deviceToken: deviceToken });
             } else {
-                // No devices found, redirecting to DeviceScan
-                console.log('No device found for user, redirecting to DeviceScan.');
                 navigation.navigate('DeviceScan');
             }
         } catch (error) {
             console.error('Login error:', error.response?.data || error.message);
-
-            if (error.response && error.response.status === 401) {
-                Alert.alert(
-                    'Unauthorized',
-                    'Your session has expired. Please log in again.',
-                    [{ text: 'OK' }]
-                );
+            
+            if (error.response?.status === 401) {
+                Alert.alert('Unauthorized', 'Your session has expired. Please log in again.');
             } else {
-                Alert.alert(
-                    'Login Failed',
-                    error.response?.data?.message || 'Invalid username or password.',
-                    [{ text: 'OK' }]
-                );
+                Alert.alert('Login Failed', error.response?.data?.message || 'Invalid username or password.');
             }
         }
     };

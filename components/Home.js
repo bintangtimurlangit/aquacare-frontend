@@ -2,16 +2,17 @@ import React, { Suspense, useContext, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import CircularProgress from 'react-native-circular-progress-indicator';
-import { Canvas } from '@react-three/fiber/native';
-import Model from './FishTank';
-import { OrbitControls } from '@react-three/drei';
+// import { Canvas } from '@react-three/fiber/native';
+// import Model from './FishTank';
+// import { OrbitControls } from '@react-three/drei';
 import { useNavigation } from "@react-navigation/native";
 import { WebSocketContext } from '../websocket/WebSocketContext';
 
-export default function Home({ aquariumName, deviceToken }) {
+export default function Home({ deviceToken }) {
     const navigation = useNavigation();
     const { temperature, ph, water, setDeviceToken } = useContext(WebSocketContext);
-    const BASE_URL = `${BASE_IP}:${PORT}`;
+    const BASE_URL = '192.168.31.218:4000';
+    const aquariumName = "Bintang";
 
     useEffect(() => {
         setDeviceToken(deviceToken);
@@ -38,7 +39,7 @@ export default function Home({ aquariumName, deviceToken }) {
                 </View>
             </View>
 
-            <View style={styles.contentWrapper}>
+            {/* <View style={styles.contentWrapper}>
                 <Canvas>
                     <OrbitControls enablePan={false} enableZoom={false}/>
                     <directionalLight position={[1, 0, 0]} args={['#A5D7E8', 5]} />
@@ -51,8 +52,8 @@ export default function Home({ aquariumName, deviceToken }) {
                         <Model />
                     </Suspense>
                 </Canvas>
-            </View>
-
+            </View> */}
+            
             <LinearGradient
                 colors={['#0F0F0F', "#0b2447"]}
                 style={styles.footerWrapper}>
