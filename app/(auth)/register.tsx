@@ -1,86 +1,143 @@
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { authAPI } from '../../services/api/auth';
+import { useAuth } from '../../context/AuthContext';
+import { Alert } from 'react-native';
 
 export default function RegisterScreen() {
     const router = useRouter();
+    const { login } = useAuth();
     const [email, setEmail] = useState('');
+    const [name, setName] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [passwordsMatch, setPasswordsMatch] = useState(true);
 
-    const onRegister = () => {
-        // Add your registration logic here later
-        router.push('/(main)/home');
+    useEffect(() => {
+        // Check passwords match whenever either password field changes
+        setPasswordsMatch(password === confirmPassword);
+    }, [password, confirmPassword]);
+
+    const onRegister = async () => {
+        if (!passwordsMatch) {
+            Alert.alert('Error', 'Passwords do not match');
+            return;
+        }
+
+        try {
+            setIsLoading(true);
+            console.log('📤 Sending registration data:', { email, name });
+            const response = await authAPI.register({ email, password, name });
+            console.log('📥 Registration response:', response);
+            await login(response.token, response.user);
+            router.push('/(auth)/register-device');
+        } catch (error: any) {
+            console.error('❌ Registration error:', {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status
+            });
+            Alert.alert(
+                'Registration Failed', 
+                error.response?.data?.error || 'An error occurred during registration'
+            );
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
-        <View style={styles.container}>
-            <View style={styles.wrapper}>
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.back()}>
-                        <Ionicons 
-                            name="arrow-back" 
-                            size={24} 
-                            color="rgba(237, 237, 237, 0.7)" 
-                        />
-                    </TouchableOpacity>
-                    <Image source={require('../../assets/images/logo.png')} style={styles.image} />
-                </View>
-
-                <Text style={styles.title}>Let's get you started</Text>
-                <Text style={styles.subtitle}>Create your account here</Text>
-
-                <View style={styles.inputWrapper}>
-                    <Text style={styles.text}>Username</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholderTextColor="#A8A8A8"
-                        value={email}
-                        onChangeText={setEmail}
-                    />
-
-                    <Text style={styles.text}>Password</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholderTextColor="#A8A8A8"
-                        value={password}
-                        onChangeText={setPassword}
-                        secureTextEntry
-                    />
-
-                    <View style={styles.alertWrapper}>
-                        <Text style={styles.text}>Confirm Password</Text>
-                        <Text style={styles.textAlert}>Password doesn't match!</Text>
-                    </View>
-
-                    <TextInput
-                        style={styles.input}
-                        placeholderTextColor="#A8A8A8"
-                        value={confirmPassword}
-                        onChangeText={setConfirmPassword}
-                        secureTextEntry
-                    />
-
-                    <View style={styles.buttonContainer}>
-                        <TouchableOpacity style={styles.button} onPress={onRegister}>
-                            <Text style={styles.buttonText}>Sign Up</Text>
+        <KeyboardAvoidingView 
+            style={styles.container}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 25}
+        >
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <View style={styles.wrapper}>
+                    <View style={styles.header}>
+                        <TouchableOpacity onPress={() => router.back()}>
+                            <Ionicons 
+                                name="arrow-back" 
+                                size={24} 
+                                color="rgba(237, 237, 237, 0.7)" 
+                            />
                         </TouchableOpacity>
+                        <Image source={require('../../assets/images/logo.png')} style={styles.image} />
                     </View>
 
-                    <View style={styles.footer}>
-                        <View style={styles.footerContent}>
-                            <Text style={styles.footerText}>
-                                Already have an account?{'  '}
-                            </Text>
-                            <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
-                                <Text style={styles.loginText}>Log In</Text>
-                            </TouchableOpacity>
+                    <Text style={styles.title}>Let's get you started</Text>
+                    <Text style={styles.subtitle}>Create your account here</Text>
+
+                    <View style={styles.inputWrapper}>
+                        <Text style={styles.text}>Full Name</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholderTextColor="#A8A8A8"
+                            value={name}
+                            onChangeText={setName}
+                        />
+
+                        <Text style={styles.text}>Email</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholderTextColor="#A8A8A8"
+                            value={email}
+                            onChangeText={setEmail}
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                        />
+
+                        <Text style={styles.text}>Password</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholderTextColor="#A8A8A8"
+                            value={password}
+                            onChangeText={setPassword}
+                            secureTextEntry
+                        />
+
+                        <View style={styles.alertWrapper}>
+                            <Text style={styles.text}>Confirm Password</Text>
+                            {!passwordsMatch && confirmPassword.length > 0 && (
+                                <Text style={styles.textAlert}>Password doesn't match!</Text>
+                            )}
                         </View>
+
+                        <TextInput
+                            style={styles.input}
+                            placeholderTextColor="#A8A8A8"
+                            value={confirmPassword}
+                            onChangeText={setConfirmPassword}
+                            secureTextEntry
+                        />
                     </View>
+                </View>
+            </ScrollView>
+
+            <View style={styles.footer}>
+                <TouchableOpacity 
+                    style={styles.button} 
+                    onPress={onRegister}
+                    disabled={isLoading || !passwordsMatch}
+                >
+                    <Text style={styles.buttonText}>
+                        {isLoading ? 'Signing Up...' : 'Sign Up'}
+                    </Text>
+                </TouchableOpacity>
+
+                <View style={styles.footerContent}>
+                    <Text style={styles.footerText}>
+                        Already have an account?{'  '}
+                    </Text>
+                    <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
+                        <Text style={styles.loginText}>Log In</Text>
+                    </TouchableOpacity>
                 </View>
             </View>
-        </View>
+        </KeyboardAvoidingView>
     );
 }
 
@@ -131,7 +188,7 @@ const styles = StyleSheet.create({
     },
     buttonContainer: {
         width: '100%',
-        marginTop: 132,
+        marginTop: 32,
     },
     button: {
         backgroundColor: '#A5D7E8',
@@ -139,6 +196,7 @@ const styles = StyleSheet.create({
         borderRadius: 25,
         alignItems: 'center',
         marginBottom: 15,
+        width: '100%',
     },
     buttonText: {
         color: '#0B2447'
@@ -157,9 +215,10 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     footer: {
-        marginHorizontal: 32,
-        alignItems: 'center',
-        justifyContent: 'center',
+        position: 'absolute',
+        bottom: 60,
+        left: 32,
+        right: 32,
     },
     footerContent: {
         flexDirection: 'row',
@@ -173,5 +232,8 @@ const styles = StyleSheet.create({
     loginText: {
         color: 'rgba(255, 255, 255, 0.7)',
         fontWeight: 'bold',
+    },
+    scrollContainer: {
+        flexGrow: 1,
     },
 });

@@ -2,15 +2,52 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Alert } from 'react-native';
+import { authAPI } from '../../services/api/auth';
+import { deviceAPI } from '../../services/api/device';
+import { useAuth } from '../../context/AuthContext';
 
 export default function LoginScreen() {
     const router = useRouter();
-    const [username, setUsername] = useState('');
+    const { login } = useAuth();
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    const onLogin = () => {
-        // Add your login logic here
-        router.push('/(main)/home');
+    const onLogin = async () => {
+        try {
+            setIsLoading(true);
+            console.log('🔄 Attempting login for:', email);
+            
+            // Login
+            const response = await authAPI.login({ email, password });
+            await login(response.token, response.user);
+            
+            // Check if user has devices
+            const devices = await deviceAPI.getUserDevices();
+            console.log('📱 Found devices:', devices.length);
+
+            // Redirect based on device status
+            if (devices.length === 0) {
+                console.log('➡️ Redirecting to device registration');
+                router.push('/(auth)/register-device');
+            } else {
+                console.log('➡️ Redirecting to home');
+                router.push('/(main)/home');
+            }
+        } catch (error: any) {
+            console.error('❌ Login failed:', {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status
+            });
+            Alert.alert(
+                'Login Failed', 
+                error.response?.data?.error || 'An error occurred during login'
+            );
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleRegisterNavigation = () => {
@@ -35,12 +72,12 @@ export default function LoginScreen() {
                 <Text style={styles.subtitle}>Welcome back! Let's sign to your account.</Text>
 
                 <View style={styles.inputWrapper}>
-                    <Text style={styles.text}>Username</Text>
+                    <Text style={styles.text}>Email</Text>
                     <TextInput
                         style={styles.input}
                         placeholderTextColor="#A8A8A8"
-                        value={username}
-                        onChangeText={setUsername}
+                        value={email}
+                        onChangeText={setEmail}
                     />
 
                     <View style={styles.alertWrapper}>

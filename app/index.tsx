@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions, Animated, NativeSyntheticEvent, NativeScrollEvent, ScrollView } from 'react-native';
+import { healthAPI } from '../services/api/health';
 
 const { width } = Dimensions.get('window');
 
@@ -27,6 +28,11 @@ export default function OnboardingScreen() {
   const scrollX = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef<ScrollView>(null);
   const [currentTitle, setCurrentTitle] = useState('Control, anytime, anywhere.');
+
+  useEffect(() => {
+    // Check backend connection on app startup
+    healthAPI.check();
+  }, []);
 
   const handleSkip = () => {
     const lastImageIndex = slides.length - 1;
