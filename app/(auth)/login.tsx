@@ -3,12 +3,12 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function Login() {
+export default function LoginScreen() {
     const router = useRouter();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
-    const handleLogin = () => {
+    const onLogin = () => {
         // Add your login logic here
         router.push('/(main)/home');
     };
@@ -57,7 +57,7 @@ export default function Login() {
                     />
 
                     <View style={styles.buttonContainer}>
-                        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+                        <TouchableOpacity style={styles.button} onPress={onLogin}>
                             <Text style={styles.buttonText}>Sign In</Text>
                         </TouchableOpacity>
                     </View>
