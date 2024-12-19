@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, Image, Alert, Modal, TextInput } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, Image, Alert, Modal, TextInput, KeyboardAvoidingView, Platform } from "react-native";
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
 import { router, useLocalSearchParams } from 'expo-router';
 import { deviceAPI } from '../../services/api/device';
@@ -13,13 +13,17 @@ export default function DeviceScan() {
     const [showNameModal, setShowNameModal] = useState(false);
     const [deviceName, setDeviceName] = useState('');
     const [pendingDeviceId, setPendingDeviceId] = useState('');
+    const [isRegistering, setIsRegistering] = useState(false);
 
     useEffect(() => {
         requestPermission();
     }, []);
 
     const handleDeviceRegistration = async (deviceId: string, name: string) => {
+        if (isRegistering) return;
+        
         try {
+            setIsRegistering(true);
             console.log('📱 Attempting to register device:', deviceId);
             await deviceAPI.registerDevice(deviceId, name);
             console.log('✅ Device registered successfully');
@@ -36,6 +40,8 @@ export default function DeviceScan() {
                 error.response?.data?.error || 'Failed to register device'
             );
             resetScanningState();
+        } finally {
+            setIsRegistering(false);
         }
     };
 
@@ -63,39 +69,54 @@ export default function DeviceScan() {
             visible={showNameModal}
             transparent={true}
             animationType="slide"
+            onRequestClose={resetScanningState}
         >
-            <View style={styles.modalContainer}>
-                <View style={styles.modalContent}>
-                    <Text style={styles.modalTitle}>Name Your Device</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Enter device name"
-                        placeholderTextColor="#666"
-                        value={deviceName}
-                        onChangeText={setDeviceName}
-                    />
-                    <View style={styles.modalButtons}>
-                        <TouchableOpacity 
-                            style={styles.modalButton} 
-                            onPress={resetScanningState}
-                        >
-                            <Text style={styles.buttonText}>Cancel</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity 
-                            style={[styles.modalButton, styles.primaryButton]}
-                            onPress={() => {
-                                if (deviceName.trim()) {
-                                    handleDeviceRegistration(pendingDeviceId, deviceName);
-                                } else {
-                                    Alert.alert('Error', 'Please enter a device name');
-                                }
-                            }}
-                        >
-                            <Text style={styles.primaryButtonText}>Register</Text>
-                        </TouchableOpacity>
+            <KeyboardAvoidingView 
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={{ flex: 1 }}
+            >
+                <View style={[styles.modalContainer, { justifyContent: 'flex-end' }]}>
+                    <View style={[styles.modalContent, { width: '100%', borderRadius: 15, marginHorizontal: 0 }]}>
+                        <Text style={styles.modalTitle}>Name Your Device</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Enter device name"
+                            placeholderTextColor="#666"
+                            value={deviceName}
+                            onChangeText={setDeviceName}
+                            autoFocus={false}
+                            returnKeyType="done"
+                        />
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity 
+                                style={styles.modalButton} 
+                                onPress={resetScanningState}
+                            >
+                                <Text style={styles.buttonText}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity 
+                                style={[
+                                    styles.modalButton, 
+                                    styles.primaryButton,
+                                    isRegistering && styles.disabledButton
+                                ]}
+                                disabled={isRegistering}
+                                onPress={() => {
+                                    if (deviceName.trim()) {
+                                        handleDeviceRegistration(pendingDeviceId, deviceName);
+                                    } else {
+                                        Alert.alert('Error', 'Please enter a device name');
+                                    }
+                                }}
+                            >
+                                <Text style={styles.primaryButtonText}>
+                                    {isRegistering ? 'Registering...' : 'Register'}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
-            </View>
+            </KeyboardAvoidingView>
         </Modal>
     );
 
@@ -284,5 +305,8 @@ const styles = StyleSheet.create({
     primaryButtonText: {
         color: '#fff',
         fontWeight: 'bold',
+    },
+    disabledButton: {
+        backgroundColor: '#ccc',
     },
 });

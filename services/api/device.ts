@@ -5,6 +5,9 @@ interface Device {
   id: string;
   name: string;
   userId: string;
+  createdAt: string;
+  updatedAt: string;
+  metrics?: any[];
 }
 
 interface DevicesResponse {
@@ -14,9 +17,9 @@ interface DevicesResponse {
 export const deviceAPI = {
   getUserDevices: async (): Promise<Device[]> => {
     try {
-      const response = await api.get<ApiResponse<DevicesResponse>>('/api/devices/my-devices');
+      const response = await api.get<DevicesResponse>('/api/devices/my-devices');
       console.log('📱 User devices:', response.data);
-      return response.data.data?.devices || [];
+      return response.data.devices || [];
     } catch (error: any) {
       console.error('❌ Failed to fetch devices:', error.response?.data);
       throw error;
