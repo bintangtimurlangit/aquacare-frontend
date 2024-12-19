@@ -32,8 +32,11 @@ export default function LoginScreen() {
                 console.log('➡️ Redirecting to device registration');
                 router.push('/(auth)/register-device');
             } else {
-                console.log('➡️ Redirecting to home');
-                router.push('/(main)/home');
+                console.log('➡️ Redirecting to home with first device');
+                router.push({
+                    pathname: '/(main)/home',
+                    params: { deviceId: devices[0].id }
+                });
             }
         } catch (error: any) {
             console.error('❌ Login failed:', {

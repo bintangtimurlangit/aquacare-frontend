@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "axios": "^1.7.9",
+    "d3": "^7.9.0",
     "expo": "~52.0.20",
     "expo-camera": "^16.0.10",
     "expo-constants": "~17.0.3",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@types/d3": "^7.4.3",
     "@types/react": "~18.3.12",
     "typescript": "^5.3.3"
   },

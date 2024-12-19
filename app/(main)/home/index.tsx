@@ -2,9 +2,12 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import CircularProgress from 'react-native-circular-progress-indicator';
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 
 export default function Home() {
+    // Get deviceId from route params
+    const { deviceId } = useLocalSearchParams<{ deviceId: string }>();
+
     // Example static data (replace with your state management solution later)
     const temperature = 27.5;
     const ph = 7.2;
@@ -80,7 +83,11 @@ export default function Home() {
                 </View>
                 <TouchableOpacity 
                     style={styles.button} 
-                    onPress={() => router.push("/(main)/advanced")}
+                    onPress={() => {
+                        if (deviceId) {
+                            router.push(`/(main)/home/${deviceId}/advanced`);
+                        }
+                    }}
                 >
                     <Text style={styles.buttonText}>Advanced</Text>
                 </TouchableOpacity>
