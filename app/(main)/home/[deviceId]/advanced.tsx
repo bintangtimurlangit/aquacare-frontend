@@ -64,14 +64,44 @@ export default function Advanced() {
         // Load initial alerts
         loadAlerts();
 
-        // Setup socket with alerts callback
+        // Connect with callbacks for real-time updates
         SocketService.connect({
+            onMetricsUpdate: async (newMetrics) => {
+                // Update metrics state with new data
+                setMetrics(prevMetrics => ({
+                    ph_level: [...prevMetrics.ph_level, { 
+                        value: newMetrics.ph_level,
+                        timestamp: newMetrics.timestamp 
+                    }],
+                    temperature: [...prevMetrics.temperature, { 
+                        value: newMetrics.temperature,
+                        timestamp: newMetrics.timestamp 
+                    }],
+                    water_level: [...prevMetrics.water_level, { 
+                        value: newMetrics.water_level,
+                        timestamp: newMetrics.timestamp 
+                    }],
+                    lastUpdate: newMetrics.timestamp
+                }));
+
+                // Store updated metrics
+                await MetricsStorageService.updateMetrics(currentDevice.id, {
+                    temperature: newMetrics.temperature,
+                    ph_level: newMetrics.ph_level,
+                    water_level: newMetrics.water_level,
+                    timestamp: newMetrics.timestamp
+                });
+            },
             onAlertsUpdate: (newAlerts) => {
                 setAlerts(newAlerts);
             }
         });
 
+        // Subscribe to device updates
+        SocketService.subscribeToDevice(currentDevice.id);
+
         return () => {
+            SocketService.unsubscribeFromDevice(currentDevice.id);
             SocketService.disconnect();
         };
     }, [deviceId, currentDevice]);

@@ -52,38 +52,68 @@ export default function DashboardScreen() {
             return;
         }
 
-        // Connect with callbacks
-        SocketService.connect({
-            onMetricsUpdate: async (metrics) => {
-                // Update state for display
-                setMetrics({
-                    temperature: Math.round(metrics.temperature),
-                    ph_level: Math.round(metrics.ph_level),
-                    water_level: Math.round(metrics.water_level)
-                });
-                setLastUpdate(metrics.timestamp);
+        // Load initial metrics from storage
+        const loadInitialMetrics = async () => {
+            const storedMetrics = await MetricsStorageService.getLatestMetrics(currentDevice.id);
+            if (storedMetrics) {
+                // Get the latest values from the stored arrays
+                const getLatestValue = (array: { value: number }[]) => 
+                    array.length > 0 ? array[array.length - 1].value : 0;
 
-                // Store metrics
-                await MetricsStorageService.updateMetrics(currentDevice.id, {
-                    temperature: metrics.temperature,
-                    ph_level: metrics.ph_level,
-                    water_level: metrics.water_level,
-                    timestamp: metrics.timestamp
+                setMetrics({
+                    temperature: getLatestValue(storedMetrics.temperature),
+                    ph_level: getLatestValue(storedMetrics.ph_level),
+                    water_level: getLatestValue(storedMetrics.water_level)
+                });
+                setLastUpdate(storedMetrics.lastUpdate);
+            }
+        };
+        loadInitialMetrics();
+
+        // Connect with callbacks for real-time updates
+        const socket = SocketService.connect({
+            onMetricsUpdate: (newMetrics) => {
+                // Update state with new metrics immediately
+                setMetrics({
+                    temperature: Math.round(newMetrics.temperature),
+                    ph_level: Math.round(newMetrics.ph_level),
+                    water_level: Math.round(newMetrics.water_level)
+                });
+                setLastUpdate(newMetrics.timestamp);
+
+                // Store metrics asynchronously
+                MetricsStorageService.updateMetrics(currentDevice.id, {
+                    temperature: newMetrics.temperature,
+                    ph_level: newMetrics.ph_level,
+                    water_level: newMetrics.water_level,
+                    timestamp: newMetrics.timestamp
+                }).catch(error => {
+                    console.error('Error storing metrics:', error);
                 });
             },
-            onConnectionChange: setIsConnected,
-            onLastUpdate: setLastUpdate
+            onConnectionChange: (status) => {
+                setIsConnected(status);
+                console.log('Connection status:', status ? 'Connected' : 'Disconnected');
+            },
+            onLastUpdate: (timestamp) => {
+                setLastUpdate(timestamp);
+            }
         });
 
-        // Subscribe to device
+        // Subscribe to device updates
         SocketService.subscribeToDevice(currentDevice.id);
 
-        // Cleanup
+        // Cleanup function
         return () => {
-            SocketService.unsubscribeFromDevice(currentDevice.id);
+            if (currentDevice) {
+                SocketService.unsubscribeFromDevice(currentDevice.id);
+            }
             SocketService.disconnect();
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
         };
-    }, [currentDevice]);
+    }, [currentDevice]); // Only re-run when currentDevice changes
 
     if (!currentDevice) {
         return (
