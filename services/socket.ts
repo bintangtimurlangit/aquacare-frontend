@@ -1,5 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 import { API_CONFIG } from '../config/api.config';
+import AlertsStorageService, { Alert } from './alertsStorage';
 
 interface MetricsData {
     deviceId: string;
@@ -18,6 +19,7 @@ type SocketCallback = {
     onMetricsUpdate?: (metrics: MetricsData['metrics']) => void;
     onConnectionChange?: (status: boolean) => void;
     onLastUpdate?: (timestamp: string) => void;
+    onAlertsUpdate?: (alerts: Alert[]) => void;
 };
 
 class SocketService {
@@ -73,6 +75,25 @@ class SocketService {
         this.socket.on('connect_error', (error) => {
             console.error('Socket connection error:', error);
             this.callbacks.onConnectionChange?.(false);
+        });
+
+        this.socket.on('alerts', async (data: { 
+            alerts: Omit<Alert, 'id'>[],
+            timestamp: string 
+        }) => {
+            if (this.currentDeviceId) {
+                // Store alerts
+                const updatedAlerts = await AlertsStorageService.addAlerts(
+                    this.currentDeviceId,
+                    data.alerts.map(alert => ({
+                        ...alert,
+                        timestamp: data.timestamp
+                    }))
+                );
+
+                // Notify through callback
+                this.callbacks.onAlertsUpdate?.(updatedAlerts);
+            }
         });
     }
 

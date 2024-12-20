@@ -14,6 +14,12 @@ export default function DeviceLayout() {
                     title: 'Advanced'
                 }}
             />
+            <Stack.Screen 
+                name="schedule"
+                options={{
+                    title: 'Schedule'
+                }}
+            />
         </Stack>
     );
 } 

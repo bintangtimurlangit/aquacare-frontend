@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -12,9 +12,12 @@ import {
 import { router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
+import { deviceAPI } from '../../services/api/device';
+import { Device } from '../../context/DeviceContext';
 
 const SettingsScreen = () => {
   const { user, logout } = useAuth();
+  const [devices, setDevices] = useState<Device[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [userData, setUserData] = useState({
     id: user?.id || '',
@@ -22,21 +25,24 @@ const SettingsScreen = () => {
     email: user?.email || 'john@example.com',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    devices: [
-      {
-        id: 'device-123',
-        name: 'Living Room Aquarium'
-      },
-      {
-        id: 'device-124',
-        name: 'Bedroom Aquarium'
-      }
-    ]
   });
+
+  useEffect(() => {
+    loadUserDevices();
+  }, []);
+
+  const loadUserDevices = async () => {
+    try {
+      const userDevices = await deviceAPI.getUserDevices();
+      console.log('📱 Loaded devices:', userDevices);
+      setDevices(userDevices);
+    } catch (error) {
+      console.error('❌ Failed to load devices:', error);
+    }
+  };
 
   const handleUpdateProfile = async () => {
     try {
-      // In a real app, you would update the backend here
       setIsEditing(false);
       Alert.alert('Success', 'Profile updated successfully');
     } catch (error) {
@@ -144,14 +150,14 @@ const SettingsScreen = () => {
               <Text style={styles.label}>
                 <MaterialCommunityIcons name="account" size={18} color="rgba(237, 237, 237, 0.6)" /> Name
               </Text>
-              <Text style={styles.value}>{userData.name || '-'}</Text>
+              <Text style={styles.value}>{user?.name || '-'}</Text>
             </View>
 
             <View style={styles.infoSection}>
               <Text style={styles.label}>
                 <MaterialCommunityIcons name="email" size={18} color="rgba(237, 237, 237, 0.6)" /> Email
               </Text>
-              <Text style={styles.value}>{userData.email}</Text>
+              <Text style={styles.value}>{user?.email}</Text>
             </View>
 
             <View style={styles.infoSection}>
@@ -166,17 +172,26 @@ const SettingsScreen = () => {
                 <MaterialCommunityIcons name="fish" size={18} color="rgba(237, 237, 237, 0.6)" /> Connected Devices
               </Text>
               <View style={styles.deviceList}>
-                {userData.devices.length > 0 ? (
-                  userData.devices.map((device) => (
-                    <View key={device.id} style={styles.deviceItem}>
+                {devices && devices.length > 0 ? (
+                  devices.map((device) => (
+                    <TouchableOpacity 
+                      key={device.id} 
+                      style={styles.deviceItem}
+                      onPress={() => router.push(`/home/${device.id}`)}
+                    >
                       <MaterialCommunityIcons 
-                        name={renderDeviceIcon(device.name)} 
+                        name={renderDeviceIcon(device.name || '')} 
                         size={24} 
                         color="#A5D7E8" 
                         style={styles.deviceIcon}
                       />
-                      <Text style={styles.deviceName}>{device.name}</Text>
-                    </View>
+                      <Text style={styles.deviceName}>{device.name || `Device ${device.id}`}</Text>
+                      <MaterialCommunityIcons 
+                        name="chevron-right" 
+                        size={24} 
+                        color="rgba(237, 237, 237, 0.3)" 
+                      />
+                    </TouchableOpacity>
                   ))
                 ) : (
                   <Text style={styles.noDeviceText}>No devices connected</Text>
