@@ -8,31 +8,26 @@ export default function MainLayout() {
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
-            router.replace('/(auth)/login');
+            router.replace('/');
         }
     }, [isAuthenticated, isLoading]);
 
-    if (isLoading || !isAuthenticated) {
+    if (isLoading) {
         return null;
     }
 
     return (
-        <Stack
-            screenOptions={{
-                headerShown: false,
-                animation: 'slide_from_right',
-            }}
-        >
+        <Stack>
             <Stack.Screen 
-                name="home/index"
+                name="home"
                 options={{
-                    title: 'Home'
+                    headerShown: false,
                 }}
             />
             <Stack.Screen 
-                name="advanced/index"
+                name="settings"
                 options={{
-                    title: 'Advanced'
+                    title: 'Settings'
                 }}
             />
         </Stack>

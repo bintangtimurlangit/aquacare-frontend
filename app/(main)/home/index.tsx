@@ -1,46 +1,212 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import CircularProgress from 'react-native-circular-progress-indicator';
 import { router, useLocalSearchParams } from "expo-router";
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { GLView } from 'expo-gl';
+import { Renderer } from 'expo-three';
+import * as THREE from 'three';
+import { Asset } from 'expo-asset';
+import { GLTFLoader, GLTF as GLTFType } from 'three/examples/jsm/loaders/GLTFLoader';
+import { useDevice } from '../../../context/DeviceContext';
+import SocketService from '../../../services/socket';
+import MetricsStorageService from '../../../services/metricsStorage';
 
-export default function Home() {
-    // Get deviceId from route params
-    const { deviceId } = useLocalSearchParams<{ deviceId: string }>();
+type GLTF = GLTFType;
 
-    // Example static data (replace with your state management solution later)
-    const temperature = 27.5;
-    const ph = 7.2;
-    const water = 85;
-    const aquariumName = "Bintang";
+interface MetricsData {
+    deviceId: string;
+    metrics: {
+        id: string;
+        deviceId: string;
+        ph_level: number;
+        water_level: number;
+        temperature: number;
+        timestamp: string;
+    };
+    timestamp: string;
+}
+
+// Create a separate interface for the metrics state
+interface MetricsState {
+    temperature: number;
+    ph_level: number;
+    water_level: number;
+}
+
+export default function DashboardScreen() {
+    const [isConnected, setIsConnected] = useState(false);
+    const { currentDevice } = useDevice();
+    const [metrics, setMetrics] = useState<MetricsState>({
+        temperature: 0,
+        ph_level: 0,
+        water_level: 0
+    });
+    const [lastUpdate, setLastUpdate] = useState<string>('');
+    let animationFrameId: number;
+    let gltfModel: GLTF | null = null;
+
+    useEffect(() => {
+        if (!currentDevice) {
+            return;
+        }
+
+        // Connect with callbacks
+        SocketService.connect({
+            onMetricsUpdate: async (metrics) => {
+                // Update state for display
+                setMetrics({
+                    temperature: Math.round(metrics.temperature),
+                    ph_level: Math.round(metrics.ph_level),
+                    water_level: Math.round(metrics.water_level)
+                });
+                setLastUpdate(metrics.timestamp);
+
+                // Store metrics
+                await MetricsStorageService.updateMetrics(currentDevice.id, {
+                    temperature: metrics.temperature,
+                    ph_level: metrics.ph_level,
+                    water_level: metrics.water_level,
+                    timestamp: metrics.timestamp
+                });
+            },
+            onConnectionChange: setIsConnected,
+            onLastUpdate: setLastUpdate
+        });
+
+        // Subscribe to device
+        SocketService.subscribeToDevice(currentDevice.id);
+
+        // Cleanup
+        return () => {
+            SocketService.unsubscribeFromDevice(currentDevice.id);
+            SocketService.disconnect();
+        };
+    }, [currentDevice]);
+
+    if (!currentDevice) {
+        return (
+            <View style={styles.container}>
+                <Text style={styles.noDeviceText}>No device selected</Text>
+                <TouchableOpacity 
+                    style={styles.selectDeviceButton}
+                    onPress={() => router.push('/(main)/home/select-device')}
+                >
+                    <MaterialCommunityIcons name="fish" size={20} color="#A5D7E8" />
+                    <Text style={styles.selectDeviceText}>Select Device</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
+
+    const onContextCreate = async (gl: WebGLRenderingContext) => {
+        const scene = new THREE.Scene();
+        
+        // Calculate aspect ratio
+        const aspectRatio = gl.drawingBufferWidth / gl.drawingBufferHeight;
+        
+        const camera = new THREE.PerspectiveCamera(
+            50,
+            aspectRatio, // This ensures proper aspect ratio
+            0.1,
+            1000
+        );
+        camera.position.set(0, 2, 7);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new Renderer({ gl });
+        renderer.setSize(gl.drawingBufferWidth, gl.drawingBufferHeight);
+        renderer.setClearColor(0x0b2447); // Match background color
+
+        try {
+            const asset = Asset.fromModule(require('../../../assets/3d/FishTank.glb'));
+            await asset.downloadAsync();
+            
+            const loader = new GLTFLoader();
+            gltfModel = await new Promise<GLTF>((resolve, reject) => {
+                loader.load(
+                    asset.uri,
+                    (gltf) => resolve(gltf),
+                    (progress) => console.log('Loading model...', progress),
+                    (error) => reject(error)
+                );
+            });
+            
+            if (gltfModel.scene) {
+                scene.add(gltfModel.scene);
+                gltfModel.scene.position.set(0, -0.8, 0);
+                gltfModel.scene.scale.set(1.5, 1.5, 1.5);
+                gltfModel.scene.rotation.y = Math.PI / 4;
+            }
+        } catch (error) {
+            console.error('Error loading model:', error);
+        }
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
+
+        const animate = () => {
+            animationFrameId = requestAnimationFrame(animate);
+            if (gltfModel?.scene) {
+                gltfModel.scene.rotation.y += 0.002;
+            }
+            renderer.render(scene, camera);
+            (gl as any).endFrameEXP();
+        };
+        animate();
+    };
 
     return (
         <View style={styles.container}>
             <View style={styles.header}>
                 <View style={styles.badgeContainer}>
-                    <View style={styles.blueDot} />
-                    <Text style={styles.badgeText}>CONNECTED</Text>
+                    <View style={[styles.blueDot, !isConnected && styles.blueDotDisconnected]} />
+                    <Text style={styles.badgeText}>
+                        {isConnected ? 'CONNECTED' : 'DISCONNECTED'}
+                    </Text>
                 </View>
             </View>
 
             <View style={styles.wrapper}>
                 <Text style={styles.title} adjustsFontSizeToFit numberOfLines={1} minimumFontScale={0.5}>
-                    {aquariumName + "'s Aquarium"}
+                    {currentDevice?.name || "No Device Selected"}
                 </Text>
             </View>
 
             <View style={styles.headerInfo}>
                 <View style={styles.headerInfoContainer}>
-                    <Text style={styles.badgeText}>Upcoming Feeding Time: 08.00 WIB</Text>
+                    <Text style={styles.badgeText}>
+                        {lastUpdate ? `Last Update: ${new Date(lastUpdate).toLocaleTimeString()}` : 'Waiting for data...'}
+                    </Text>
                 </View>
             </View>
-            
+
+            <View style={styles.modelContainer}>
+                <GLView
+                    style={{ flex: 1 }}
+                    onContextCreate={onContextCreate}
+                />
+            </View>
+
+            <TouchableOpacity 
+                onPress={() => router.push('/(main)/home/select-device')}
+                style={styles.selectDeviceButton}
+            >
+                <MaterialCommunityIcons name="fish" size={20} color="#A5D7E8" />
+                <Text style={styles.selectDeviceText}>Select Device</Text>
+            </TouchableOpacity>
+
             <LinearGradient
                 colors={['#0F0F0F', "#0b2447"]}
                 style={styles.footerWrapper}>
                 <View style={styles.circularProgressWrapper}>
                     <CircularProgress
-                        value={ph}
+                        value={metrics.ph_level}
                         radius={38}
                         duration={2000}
                         progressValueFontSize={14}
@@ -53,7 +219,7 @@ export default function Home() {
                         titleStyle={{fontWeight: 'bold'}}
                     />
                     <CircularProgress
-                        value={temperature}
+                        value={metrics.temperature}
                         radius={38}
                         duration={2000}
                         progressValueColor={'#A5D7E8'}
@@ -67,7 +233,7 @@ export default function Home() {
                         titleStyle={{fontWeight: 'bold'}}
                     />
                     <CircularProgress
-                        value={water}
+                        value={metrics.water_level}
                         radius={38}
                         duration={2000}
                         progressValueColor={'#A5D7E8'}
@@ -84,8 +250,8 @@ export default function Home() {
                 <TouchableOpacity 
                     style={styles.button} 
                     onPress={() => {
-                        if (deviceId) {
-                            router.push(`/(main)/home/${deviceId}/advanced`);
+                        if (currentDevice) {
+                            router.push(`/(main)/home/${currentDevice.id}/advanced`);
                         }
                     }}
                 >
@@ -166,6 +332,9 @@ const styles = StyleSheet.create({
         marginRight: 8,
         justifyContent: 'center',
     },
+    blueDotDisconnected: {
+        backgroundColor: '#FF6B6B', // Red color for disconnected state
+    },
     wrapper: {
         marginHorizontal: 32,
     },
@@ -206,5 +375,34 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         gap: 32,
         flexDirection: 'row'
-    }
+    },
+    selectDeviceButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(165, 215, 232, 0.1)',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+        gap: 8,
+        alignSelf: 'center',
+        marginTop: 16,
+        marginBottom: 16,
+    },
+    selectDeviceText: {
+        color: '#A5D7E8',
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    modelContainer: {
+        width: '100%',
+        height: 370,
+        backgroundColor: '#0b2447',
+    },
+    noDeviceText: {
+        color: '#FFFFFF',
+        fontSize: 24,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginTop: 100,
+    },
 });

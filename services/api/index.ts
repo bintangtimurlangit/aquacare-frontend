@@ -1,18 +1,16 @@
 import axios from 'axios';
-import { API_CONFIG } from '../../config/api.config';
 import * as SecureStore from 'expo-secure-store';
+import { router } from 'expo-router';
+import { API_CONFIG } from '../../config/api.config';
 
-export const api = axios.create({
+const api = axios.create({
     baseURL: API_CONFIG.baseURL,
-    headers: {
-        'Content-Type': 'application/json',
-    },
 });
 
-// Add a request interceptor to add the auth token
+// Add request interceptor to add token to requests
 api.interceptors.request.use(
     async (config) => {
-        const token = await SecureStore.getItemAsync('token');
+        const token = await SecureStore.getItemAsync('userToken');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -23,14 +21,19 @@ api.interceptors.request.use(
     }
 );
 
-// Add a response interceptor to handle errors
+// Optional: Add response interceptor to handle token expiration
 api.interceptors.response.use(
     (response) => response,
-    (error) => {
+    async (error) => {
         if (error.response?.status === 401) {
-            // Handle unauthorized access
-            // You might want to redirect to login or clear auth state
+            // Token expired or invalid
+            await SecureStore.deleteItemAsync('userToken');
+            await SecureStore.deleteItemAsync('user');
+            // Redirect to login
+            router.push('/');
         }
         return Promise.reject(error);
     }
 );
+
+export default api;

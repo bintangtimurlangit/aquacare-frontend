@@ -1,4 +1,4 @@
-import { api } from './index';
+import api from './index';
 import { AuthResponse, LoginCredentials, RegisterData } from '../../types/auth';
 import { ApiResponse } from '../../types/api';
 import * as SecureStore from 'expo-secure-store';

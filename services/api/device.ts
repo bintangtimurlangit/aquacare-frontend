@@ -1,14 +1,6 @@
-import { api } from './index';
+import api from './index';
+import { Device } from '../../context/DeviceContext';
 import { ApiResponse } from '../../types/api';
-
-interface Device {
-  id: string;
-  name: string;
-  userId: string;
-  createdAt: string;
-  updatedAt: string;
-  metrics?: any[];
-}
 
 interface DevicesResponse {
   devices: Device[];
@@ -39,5 +31,27 @@ export const deviceAPI = {
       console.error('❌ Device registration failed:', error.response?.data);
       throw error;
     }
+  },
+
+  getDeviceSettings: async (deviceId: string) => {
+    const response = await api.get(`/api/devices/${deviceId}/settings`);
+    return response.data.settings;
+  },
+
+  updateDeviceSettings: async (deviceId: string, settings: any) => {
+    const response = await api.put(`/api/devices/${deviceId}/settings`, settings);
+    return response.data.device;
+  },
+
+  getDeviceMetrics: async (deviceId: string, startDate?: string, endDate?: string) => {
+    const response = await api.get(`/api/devices/${deviceId}/metrics`, {
+      params: { startDate, endDate }
+    });
+    return response.data.metrics;
+  },
+
+  getDeviceAlerts: async (deviceId: string) => {
+    const response = await api.get(`/api/devices/${deviceId}/alerts`);
+    return response.data.alerts;
   }
 };

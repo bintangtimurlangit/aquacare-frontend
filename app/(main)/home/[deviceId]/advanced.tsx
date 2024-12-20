@@ -1,14 +1,51 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, TouchableOpacity, StyleSheet, Text } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from '@expo/vector-icons';
 import { LineGraph } from '../../../../components/ui/line-graph';
+import MetricsStorageService from '../../../../services/metricsStorage';
+import { useDevice } from '../../../../context/DeviceContext';
+
+// Import the types from metricsStorage
+interface MetricPoint {
+    value: number;
+    timestamp: string;
+}
+
+interface StoredMetrics {
+    ph_level: MetricPoint[];
+    temperature: MetricPoint[];
+    water_level: MetricPoint[];
+    lastUpdate: string;
+}
 
 export default function Advanced() {
-    // Dummy data for the graphs
-    const dummyPhData = [7.0, 7.2, 7.1, 7.3, 7.2, 7.0, 7.1, 7.2, 7.3, 7.1];
-    const dummyTempData = [26, 27, 26.5, 27.5, 27, 26.8, 27.2, 27.5, 27.3, 27.5];
-    const dummyWaterData = [85, 84, 83, 85, 86, 85, 84, 83, 85, 85];
+    const { deviceId } = useLocalSearchParams();
+    const { currentDevice } = useDevice();
+    const [metrics, setMetrics] = useState<StoredMetrics>({
+        ph_level: [],
+        temperature: [],
+        water_level: [],
+        lastUpdate: ''
+    });
+
+    useEffect(() => {
+        loadMetrics();
+    }, [deviceId]);
+
+    const loadMetrics = async () => {
+        if (!currentDevice) return;
+        
+        const storedMetrics = await MetricsStorageService.getLatestMetrics(currentDevice.id);
+        if (storedMetrics) {
+            setMetrics(storedMetrics);
+        }
+    };
+
+    // Get latest values for stats
+    const getLatestValue = (array: MetricPoint[]) => {
+        return array.length > 0 ? array[array.length - 1].value : 0;
+    };
 
     return (
         <View style={styles.container}>
@@ -26,7 +63,7 @@ export default function Advanced() {
 
             <View>
                 <LineGraph
-                    data={dummyPhData}
+                    data={metrics.ph_level.map(point => point.value)}
                     style={styles.cardGraph}
                     color={{
                         dark: "#A5D7E8",
@@ -34,11 +71,11 @@ export default function Advanced() {
                         nearWhite: "#A5D7E8"
                     }}
                     label="PH LEVEL"
-                    stat="7.2"
+                    stat={getLatestValue(metrics.ph_level).toFixed(1)}
                 />
 
                 <LineGraph
-                    data={dummyTempData}
+                    data={metrics.temperature.map(point => point.value)}
                     style={styles.cardGraph}
                     color={{
                         dark: "#A5D7E8",
@@ -46,11 +83,11 @@ export default function Advanced() {
                         nearWhite: "#A5D7E8"
                     }}
                     label="TEMPERATURE"
-                    stat="27.5 °C"
+                    stat={`${getLatestValue(metrics.temperature).toFixed(1)} °C`}
                 />
 
                 <LineGraph
-                    data={dummyWaterData}
+                    data={metrics.water_level.map(point => point.value)}
                     style={styles.cardGraph}
                     color={{
                         dark: "#A5D7E8",
@@ -58,7 +95,7 @@ export default function Advanced() {
                         nearWhite: "#A5D7E8"
                     }}
                     label="WATER LEVEL"
-                    stat="85%"
+                    stat={`${getLatestValue(metrics.water_level).toFixed(0)}%`}
                 />
             </View>
         </View>

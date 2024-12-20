@@ -1,4 +1,4 @@
-import { api } from './index';
+import api from './index';
 import { AxiosError } from 'axios';
 
 export const healthAPI = {

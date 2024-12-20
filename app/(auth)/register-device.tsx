@@ -4,7 +4,7 @@ import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-ca
 import { router, useLocalSearchParams } from 'expo-router';
 import { deviceAPI } from '../../services/api/device';
 
-export default function DeviceScan() {
+export default function RegisterDeviceScreen() {
     const { fromScreen } = useLocalSearchParams<{ fromScreen?: string }>();
     const [permission, requestPermission] = useCameraPermissions();
     const [scannedCode, setScannedCode] = useState('');
